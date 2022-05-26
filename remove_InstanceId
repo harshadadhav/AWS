@@ -1,0 +1,11 @@
+#!/bin/bash
+keyname=first_key_pairs_24_05_2022
+InstanceId=`aws ec2 describe-instances| grep -i InstanceId |awk  -F  : '{print $2}'|tr -d '" ,' `
+PublicIp='aws ec2 describe-instances| grep -i PublicIpAdd |awk -F : '{print $2}' |tr -d '" ,' `
+firstsg=`aws ec2 describe-security-groups |grep "My security group"  -A  6 | tr -d '" ,' | grep -i GroupId |  awk -F : '{print $2}'`
+
+aws ec2 delete-key-pair --key-name	$keyname
+aws ec2 describe-key-pairs
+firstsg=`aws ec2 describe-security-groups |grep "My security group"  -A  33 | tr -d '" ,' | grep -i GroupId |  awk -F : '{print $2}'`
+aws ec2 terminate-instances --instances id $InstanceId
+aws ec2 delete-security-groups  --group id $firstsg
