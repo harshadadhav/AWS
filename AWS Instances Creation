@@ -1,0 +1,23 @@
+#!/bin/bash
+
+aws ec2 create-key-pair  --key-name 'first_key_pairs_24_05_2022' --query 'KeyMaterial' --output text > first_key_pairs_24_05_2022.pem
+aws ec2 describe-key-pairs
+
+keyname=first_key_pairs_24_05_2022
+ami=ami-0022f774911c1d690 
+
+vpcid=`aws ec2 describe-vpcs | grep VpcId  | tr -d '" ,' | awk  -F : '{print  $2}'`
+
+aws ec2 create-security-group --group-name first-sg --description "My security group" --vpc-id $vpcid
+
+firstsg=`aws ec2 describe-security-groups |grep "My security group"  -A  6 | tr -d '" ,' | grep -i GroupId |  awk -F : '{print $2}'`
+
+aws ec2 authorize-security-group-ingress --group-id $firstsg --protocol tcp --port 22 --cidr 0.0.0.0/0
+
+subnetid=`aws ec2 describe-subnets | grep "SubnetId" |awk -F : '{print $2}' |tr -d  ', "  : '  |head  -n 1`
+
+aws ec2 run-instances --image-id $ami --count 1 --instance-type t2.micro  --key-name $keyname --security-group-ids $firstsg --subnet-id $subnetid
+
+#aws ec2 run-instances --image-id ami-0022f774911c1d690 \
+--count 1 --instance-type t2.micro  --key-name first_key_pairs_24_05_2022 \
+--security-group-ids $firstsg --subnet-id $subnetid
